@@ -1,27 +1,30 @@
 trigger:
-- main   # Runs pipeline on commits to main branch
+- main   # Run pipeline when code is pushed to main branch
 
 pool:
-  vmImage: 'ubuntu-latest'   # Build agent OS
+  vmImage: 'ubuntu-latest'   # Use latest Ubuntu agent
 
 steps:
 - task: NodeTool@0
   inputs:
-    versionSpec: '18.x'    # Node.js version
+    versionSpec: '18.x'   # Use Node.js 18
   displayName: 'Install Node.js'
+
+- script: npm install -g @angular/cli
+  displayName: 'Install Angular CLI'
 
 - script: npm install
   displayName: 'Install dependencies'
 
-- script: npm run build
-  displayName: 'Build project'
+- script: npm run build -- --configuration=production
+  displayName: 'Build Angular app'
 
-- script: npm test
-  displayName: 'Run tests'
+- script: npm test -- --watch=false --browsers=ChromeHeadless
+  displayName: 'Run unit tests'
 
 - task: PublishBuildArtifacts@1
   inputs:
-    PathtoPublish: '$(Build.SourcesDirectory)'
-    ArtifactName: 'drop'
+    PathtoPublish: 'dist'
+    ArtifactName: 'angular-app'
     publishLocation: 'Container'
   displayName: 'Publish build artifacts'
